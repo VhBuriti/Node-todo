@@ -7,7 +7,7 @@ This is a simple Todo App, made using React.Js, Node/Node Express and MongoDB.
 To install all dependencies, run:
 
 ```
-    npm run install dependencies
+    npm run install-dependencies
 ```
 
 Then, to boot up both Node.Js backend and React.Js front-end, run:
