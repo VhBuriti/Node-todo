@@ -1,62 +1,57 @@
-const express = require('express');
-const { getConnectedClient } = require('./connectionDB');
+const express = require("express");
+const { getConnectedClient } = require("./connectionDB");
+const { ObjectId } = require("mongodb");
 const router = express.Router();
-const { ObjectId } = require('mongodb');
 
 const getCollection = () => {
     const client = getConnectedClient();
-    const collection = client?.db("todosdb")?.collection("todos");
+    const collection = client.db("todosdb").collection("todos");
     return collection;
 }
 
-// GET /todos
-router.get('/todos', async (request, response) => {
+router.get("/todos", async (req, res) => {
     const collection = getCollection();
-    const todos = await collection?.find({})?.toArray();
+    const todos = await collection.find({}).toArray();
 
-    response.status(200).json(todos);
+    res.status(200).json(todos);
 });
 
-// POST /todos
-router.post('/todos', async (request, response) => {
+router.post("/todos", async (req, res) => {
     const collection = getCollection();
+    let { todo } = req.body;
 
-    const { todo } = request.body;
-
-    if(!todo) {
-        return response.status(400).json({msg: "error! No todo found"});
+    if (!todo) {
+        return res.status(400).json({ mssg: "error no todo found"});
     }
 
-    todo = JSON.stringify(todo);
+    todo = (typeof todo === "string") ? todo : JSON.stringify(todo);
 
-    const newTodo = await collection?.insertOne({todo, status: false});
+    const newTodo = await collection.insertOne({ todo, status: false });
 
-    response.status(201).json({todo, status:false, _id: newTodo.insertedId})
+    res.status(201).json({ todo, status: false, _id: newTodo.insertedId });
 });
 
-// DELETE /todos:id
-router.delete('/todos/:id', async (request, response) => {
+router.delete("/todos/:id", async (req, res) => {
     const collection = getCollection();
-    const _id = new ObjectId(request?.params?.id);
+    const _id = new ObjectId(req.params.id);
 
     const deletedTodo = await collection.deleteOne({ _id });
 
-    response.status(200).json(deletedTodo);
+    res.status(200).json(deletedTodo);
 });
 
-// PUT /todos:id
-router.put('/todos/:id', async (request, response) => {
+router.put("/todos/:id", async (req, res) => {
     const collection = getCollection();
-    const _id = new ObjectId(request?.params?.id);
-    const { status } = request.body;
+    const _id = new ObjectId(req.params.id);
+    const { status } = req.body;
 
-    if (typeof status !== "boolean"){
-        return response.status(400).json({msg: "error! invalid stauts type"})
+    if (typeof status !== "boolean") {
+        return res.status(400).json({ mssg: "invalid status"});
     }
 
-    const updatedTodo = await collection.updateOne({ _id }, {$set: {status: !status}})
+    const updatedTodo = await collection.updateOne({ _id }, { $set: { status: !status } });
 
-    response.status(200).json(updatedTodo)
+    res.status(200).json(updatedTodo);
 });
 
 module.exports = router;
